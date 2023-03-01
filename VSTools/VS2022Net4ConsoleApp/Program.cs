@@ -25,13 +25,14 @@ namespace VS2022Net4ConsoleApp
 
 
             // 2.安装所需的组件
-            InstallFiles(baseDir, needInstallFilePathList);
+            await InstallFilesAsync(baseDir, needInstallFilePathList);
 
 
             // 3.清理临时文件
             Directory.Delete(baseDir, true);
 
-            Console.WriteLine("处理完成！");
+            Console.Write("处理完成！按任意键结束！");
+            Console.ReadKey();
         }
 
         private static async Task<IEnumerable<string>> DownloadNeedtargetingPackAsync(string baseDir)
@@ -62,8 +63,9 @@ namespace VS2022Net4ConsoleApp
 
                     if (fileName!.EndsWith(".msi")) needInstallFilePathList.Add(filePath);
                 }
+                Console.WriteLine($"{id}：下载完成！");
             }
-            Task.WaitAll(taskList.ToArray());
+            await Task.WhenAll(taskList.ToArray());
 
             return needInstallFilePathList;
         }
@@ -100,19 +102,20 @@ namespace VS2022Net4ConsoleApp
         }
 
 
-        private static void InstallFiles(string baseDir, IEnumerable<string> needFilePathList)
+        private static async Task InstallFilesAsync(string baseDir, IEnumerable<string> needFilePathList)
         {
             List<string> cmdList = new();
             foreach (var item in needFilePathList)
             {
-                cmdList.Add($"%~dp0{item.Substring(baseDir.Length + 1)} MSIFASTINSTALL=7 EXTUI=1");
+                cmdList.Add($"%~dp0{item.Substring(baseDir.Length + 1)} MSIFASTINSTALL=7 EXTUI=1 /qn");
             }
 
             var cmdFilePath = Path.Combine(baseDir, "InstallAll.cmd");
-            File.WriteAllLinesAsync(cmdFilePath, cmdList);
+            await File.WriteAllLinesAsync(cmdFilePath, cmdList);
 
             Console.WriteLine("开始安装所需组件！");
-            Process.Start(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, cmdFilePath));
+            var cmdProcess = Process.Start(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, cmdFilePath));
+            cmdProcess.WaitForExit();
             Console.WriteLine("组件安装成功！");
         }
 

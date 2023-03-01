@@ -6,6 +6,7 @@
     <RootNamespace>VS2022Net4ConsoleApp</RootNamespace>
     <Nullable>enable</Nullable>
     <LangVersion>preview</LangVersion>
+    <Version>1.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
